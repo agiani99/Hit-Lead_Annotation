@@ -9,6 +9,9 @@ python annotate.py CHEMBL2808_EC50.csv --patents-min-phase 1
 ```
 
 Output in `output/`: `<name>_annotated.csv` and `<name>_radar.html`. ChEMBL calls are cached in `cache/`.
+Here an example for current demo:
+
+![dashboard](https://github.com/agiani99/Hit-Lead_Annotation/blob/main/Screenshot.png)
 
 ## Options
 | flag | meaning |
