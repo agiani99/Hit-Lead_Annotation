@@ -1,0 +1,7 @@
+pandas
+rdkit
+requests
+pyyaml
+matplotlib
+duckdb
+admet-ai

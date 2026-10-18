@@ -1,0 +1,58 @@
+# Thresholds and axes for the HIT_anno radar plots.
+#
+# Every axis is drawn so that the CENTRE is "good" and the rim is "bad".
+# The green polygon marks the allowed area: a compound is acceptable on an axis
+# when its point lies inside the green polygon.
+#
+# direction:
+#   lower_better   allowed when value <= thr
+#   higher_better  allowed when value >= thr
+#   band           allowed when lo_ok <= value <= hi_ok (thr is ignored)
+# lo / hi : values mapped to the inner / outer end of the axis (display only)
+#
+# kind of data:
+#   prop      ChEMBL molecule_properties field (fallback: RDKit)
+#   activity  measured pChEMBL from ChEMBL activities on `targets` (strictest = highest)
+#   solub     measured ChEMBL Solubility converted to logS (strictest = lowest)
+#   cytotox   measured ChEMBL CC50 pChEMBL (strictest = highest)
+#   admet     prediction only (ADMET-AI column / local model column)
+#
+# `pred` gives the prediction used when no measured value exists. `pred_thr`
+# is the threshold on the *prediction* scale (e.g. 0.5 for a probability), so
+# measured and predicted values each get judged on their own scale.
+
+axes:
+  - {key: logP,    label: logP,     kind: prop, field: alogp,        direction: lower_better,  thr: 5,    lo: 0,   hi: 8}
+  - {key: TPSA,    label: TPSA,     kind: prop, field: psa,          direction: lower_better,  thr: 140,  lo: 0,   hi: 200}
+  - {key: RotB,    label: RotB,     kind: prop, field: rtb,          direction: lower_better,  thr: 10,   lo: 0,   hi: 15}
+  - {key: HA,      label: HA,       kind: prop, field: heavy_atoms,  direction: lower_better,  thr: 35,   lo: 10,  hi: 55}
+  - {key: HD,      label: HD,       kind: prop, field: hbd,          direction: lower_better,  thr: 5,    lo: 0,   hi: 8}
+
+  - {key: CYP3A4,  label: CYP3A4,   kind: activity, targets: [CHEMBL340],  direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: CYP3A4_Veith,  pred_thr: 0.5, pred_lo: 0, pred_hi: 1}
+  - {key: CYP2D6,  label: CYP2D6,   kind: activity, targets: [CHEMBL289],  direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: CYP2D6_Veith,  pred_thr: 0.5, pred_lo: 0, pred_hi: 1}
+  - {key: CYP2C19, label: CYP2C19,  kind: activity, targets: [CHEMBL3622], direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: CYP2C19_Veith, pred_thr: 0.5, pred_lo: 0, pred_hi: 1}
+  - {key: hERG,    label: hERG,     kind: activity, targets: [CHEMBL240],  direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: hERG,          pred_thr: 0.5, pred_lo: 0, pred_hi: 1}
+  - {key: Pgp,     label: P-gp,     kind: activity, targets: [CHEMBL4302], direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: Pgp_Broccatelli, pred_thr: 0.5, pred_lo: 0, pred_hi: 1}
+
+  # logS (log10 mol/L); >= -4 is roughly >= 100 uM
+  - {key: Solubility, label: Solubility, kind: solub, direction: higher_better, thr: -4, lo: -8, hi: 0,
+     pred: Solubility_AqSolDB, pred_thr: -4, pred_lo: -8, pred_hi: 0}
+
+  # pCC50; HEK293 is not filterable in the ChEMBL activity endpoint, so any cell CC50 is used.
+  # No prediction by default (ADMET-AI has no cytotoxicity endpoint): plug a local model in.
+  - {key: CellTox, label: Cytotox, kind: cytotox, direction: lower_better, thr: 5, lo: 4, hi: 7,
+     pred: CellTox_pred, pred_thr: 5, pred_lo: 4, pred_hi: 7}
+
+  - {key: AMES,    label: AMES,     kind: admet, direction: lower_better, pred: AMES, thr: 0.5, lo: 0, hi: 1}
+
+  # PK. ADMET-AI has VDss and half-life but no AUC; AUC appears only if a local model supplies it.
+  - {key: VDss,    label: VDss,     kind: admet, direction: band, pred: VDss_Lombardo, lo_ok: -0.52, hi_ok: 0.48, lo: -2, hi: 2}  # ADMET-AI VDss is log10(L/kg); allowed 0.3-3 L/kg
+  - {key: Thalf,   label: "t1/2",   kind: admet, direction: higher_better, pred: Half_Life_Obach, thr: 2, lo: 0, hi: 20}
+  - {key: AUC,     label: AUC,      kind: admet, direction: higher_better, pred: AUC_pred, thr: 1, lo: 0, hi: 10}
+
+# Potency of the hit itself is shown in the card caption, not as a radar axis.
